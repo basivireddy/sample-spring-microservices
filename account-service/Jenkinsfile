@@ -56,5 +56,5 @@ def checkCodeQuality(sonarVersion){
 def build(mvnVersion, task){
 	def mvnHome = tool name: "${mvnVersion}"
 	env.PATH = "${mvnHome}/bin:${env.PATH}"
-    sh "mvn clean ${task}"
+    sh "mvn -B -f account-service/pom.xml clean ${task}"
 }
