@@ -5,13 +5,22 @@ node {
             git url: 'https://github.com/basivireddy/sample-spring-microservices.git', credentialsId: 'github-basivireddy', branch: 'master'
         }
 
-        stage('Build') {
-            sh 'mvn clean install'
-
-            def pom = readMavenPom file:'pom.xml'
+        
+	stage('Build and Package') {
+	    build("maven", "package");
+	    def pom = readMavenPom file:'pom.xml'
             print pom.version
             env.version = pom.version
-        }
+		
+	}
+	
+	//stage('Build') {
+        //    sh 'mvn clean install'
+
+         //   def pom = readMavenPom file:'pom.xml'
+         //   print pom.version
+         //   env.version = pom.version
+       // }
      
         stage('SonarQube analysis') {
 		       checkCodeQuality("SonarQube");
@@ -41,4 +50,11 @@ def checkCodeQuality(sonarVersion){
 	withSonarQubeEnv("${sonarVersion}") { // SonarQube taskId is automatically attached to the pipeline context
         sh "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.3.0.603:sonar" 
     }
+}
+
+
+def build(mvnVersion, task){
+	def mvnHome = tool name: "${mvnVersion}"
+	env.PATH = "${mvnHome}/bin:${env.PATH}"
+    sh "mvn clean ${task}"
 }
