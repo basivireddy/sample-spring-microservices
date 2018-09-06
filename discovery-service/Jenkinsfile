@@ -14,6 +14,9 @@ node {
 		
 	}
 
+	stage('SonarQube analysis') {
+		       checkCodeQuality("sonar");
+        }
        
         stage ('Final') {
             build job: 'account-service-pipeline', wait: false
