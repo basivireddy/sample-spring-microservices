@@ -23,7 +23,7 @@ node {
        // }
      
         stage('SonarQube analysis') {
-		       checkCodeQuality("SonarQube");
+		       checkCodeQuality("sonar");
         }
 
         stage('Image') {
