@@ -11,7 +11,10 @@ node {
 		
 	 }
  
-    
+    stage('SonarQube analysis') {
+		       checkCodeQuality("sonar");
+        }
+	
     /*
         stage('Image') {
             dir ('gateway-service') {
