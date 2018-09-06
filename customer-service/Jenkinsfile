@@ -7,26 +7,13 @@ node {
         stage('Build and Package') {
 	        build("maven", "package");
 	        def pom = readMavenPom file:'pom.xml'
-            print pom.version
-            env.version = pom.version
+                print pom.version
+                env.version = pom.version
 	    }
-      
-    /*
-       stage('Image') {
-            dir ('customer-service') {
-                def app = docker.build "localhost:5000/customer-service:${env.version}"
-                app.push()
-            }
-        }
-
-        stage ('Run') {
-            docker.image("localhost:5000/customer-service:${env.version}").run('-p 3333:3333 -h customer --name customer --link discovery --link account')
-        }
-*/
+   
        stage('SonarQube analysis') {
-		       checkCodeQuality("sonar");
+		checkCodeQuality("sonar");
         }
-
     
         stage ('Final') {
             build job: 'gateway-service-pipeline', wait: false
@@ -44,5 +31,5 @@ def checkCodeQuality(sonarVersion){
 def build(mvnVersion, task){
 	def mvnHome = tool name: "${mvnVersion}"
 	env.PATH = "${mvnHome}/bin:${env.PATH}"
-    sh "mvn -B -f customer-service/pom.xml clean ${task}"
+        sh "mvn -B -f customer-service/pom.xml clean ${task}"
 }
