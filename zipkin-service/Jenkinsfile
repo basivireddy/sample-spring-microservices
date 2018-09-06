@@ -1,0 +1,62 @@
+
+node {
+
+        stage('Checkout') {
+            git url: 'https://github.com/basivireddy/sample-spring-microservices.git', credentialsId: 'github-basivireddy', branch: 'master'
+        }
+
+        
+	stage('Build and Package') {
+	    build("maven", "package");
+	    def pom = readMavenPom file:'pom.xml'
+            print pom.version
+            env.version = pom.version
+		
+	}
+	
+	//stage('Build') {
+        //    sh 'mvn clean install'
+
+         //   def pom = readMavenPom file:'pom.xml'
+         //   print pom.version
+         //   env.version = pom.version
+       // }
+     
+        stage('SonarQube analysis') {
+		       checkCodeQuality("sonar");
+        }
+
+        /* stage('Image') {
+            dir ('account-service') {
+        //        def app = docker.build "localhost:5000/account-service:${env.version}"
+        //        app.push()
+        //    }
+        }
+
+        stage ('Run') {
+            docker.image("localhost:5000/account-service:${env.version}").run('-p 2222:2222 -h account --name account --link discovery')
+        }
+	
+	*/
+
+        stage ('Final') {
+            build job: 'customer-service-pipeline', wait: false
+        }      
+
+    
+
+}
+
+
+def checkCodeQuality(sonarVersion){
+	withSonarQubeEnv("${sonarVersion}") { // SonarQube taskId is automatically attached to the pipeline context
+        sh "mvn -B -f zipkin-service/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.3.0.603:sonar" 
+    }
+}
+
+
+def build(mvnVersion, task){
+	def mvnHome = tool name: "${mvnVersion}"
+	env.PATH = "${mvnHome}/bin:${env.PATH}"
+    sh "mvn -B -f zipkin-service/pom.xml clean ${task}"
+}
