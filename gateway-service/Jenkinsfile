@@ -1,19 +1,19 @@
 node {
 
-    withMaven(maven:'maven') {
-
         stage('Checkout') {
-            git url: 'https://github.com/piomin/sample-spring-microservices.git', credentialsId: 'github-piomin', branch: 'master'
+            git url: 'https://github.com/basivireddy/sample-spring-microservices.git', credentialsId: 'github-basivireddy', branch: 'master'
         }
 
-        stage('Build') {
-            sh 'mvn clean install'
-
-            def pom = readMavenPom file:'pom.xml'
+       stage('Build and Package') {
+	    build("maven", "package");
+	    def pom = readMavenPom file:'pom.xml'
             print pom.version
             env.version = pom.version
-        }
-
+		
+	 }
+ 
+    
+    /*
         stage('Image') {
             dir ('gateway-service') {
                 def app = docker.build "localhost:5000/gateway-service:${env.version}"
@@ -25,7 +25,21 @@ node {
             docker.image("localhost:5000/gateway-service:${env.version}").run('-p 3333:3333 -h gateway --name gateway --link discovery --link account --link customer')
         }
      
-
+*/
     }
 
+}
+
+
+def checkCodeQuality(sonarVersion){
+	withSonarQubeEnv("${sonarVersion}") { // SonarQube taskId is automatically attached to the pipeline context
+        sh "mvn -B -f gateway-service/pom.xml org.sonarsource.scanner.maven:sonar-maven-plugin:3.3.0.603:sonar" 
+    }
+}
+
+
+def build(mvnVersion, task){
+	def mvnHome = tool name: "${mvnVersion}"
+	env.PATH = "${mvnHome}/bin:${env.PATH}"
+    sh "mvn -B -f gateway-service/pom.xml clean ${task}"
 }
